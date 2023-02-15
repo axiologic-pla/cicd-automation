@@ -79,7 +79,7 @@ jobs:
           echo "ELASTIC_IP_ALLOCATION_ID=$(cat $ELASTIC_IP_ALLOCATION_ID_PATH)" >> $GITHUB_ENV
       - name: Clone pl-automation
         run: |
-          git clone ${{secrets.CI_CD_AUTOMATION_REPO_URL}}
+          git clone ${{secrets.CI_CD_AUTOMATION_REPO_URL}} pl-automation
 
       - name: 'Move terraform.tfstate to ./pl-automation/deployments/terraform/aws-eks-infrastructure-pla/create-cluster if it exists'
         run: |
@@ -100,6 +100,7 @@ jobs:
         run: terraform -chdir=$TERRAFORM_SCRIPTS_PATH apply -auto-approve -input=false
         env:
           TF_VAR_eks_aws_auth_roles: ${{ secrets.EKS_AWS_AUTH_ROLES }}
+          TF_VAR_eks_aws_auth_users: ${{ secrets.EKS_AWS_AUTH_USERS }}
           TF_VAR_account_id: ${{ secrets.ACCOUNT_ID }}
           TF_VAR_region: ${{github.event.inputs.region}}
           TF_VAR_vpc_external_nat_ip_ids: ${{env.ELASTIC_IP_ALLOCATION_ID}}
@@ -113,6 +114,7 @@ jobs:
         run: terraform -chdir=$TERRAFORM_SCRIPTS_PATH destroy -auto-approve -input=false
         env:
           TF_VAR_eks_aws_auth_roles: ${{ secrets.EKS_AWS_AUTH_ROLES }}
+          TF_VAR_eks_aws_auth_users: ${{ secrets.EKS_AWS_AUTH_USERS }}
           TF_VAR_account_id: ${{ secrets.ACCOUNT_ID }}
           TF_VAR_region: ${{github.event.inputs.region}}
           TF_VAR_vpc_external_nat_ip_ids: ${{env.ELASTIC_IP_ALLOCATION_ID}}
@@ -144,6 +146,7 @@ jobs:
         run: terraform -chdir=$TERRAFORM_SCRIPTS_PATH destroy -auto-approve -input=false
         env:
           TF_VAR_eks_aws_auth_roles: ${{ secrets.EKS_AWS_AUTH_ROLES }}
+          TF_VAR_eks_aws_auth_users: ${{ secrets.EKS_AWS_AUTH_USERS }}
           TF_VAR_account_id: ${{ secrets.ACCOUNT_ID }}
           TF_VAR_region: ${{github.event.inputs.region}}
           TF_VAR_vpc_external_nat_ip_ids: ${{env.ELASTIC_IP_ALLOCATION_ID}}

@@ -101,7 +101,7 @@ jobs:
           
       - name: Install blockchain node
         run: |
-          NO_FOLDERS=$(find $NETWORKS_PATH -maxdepth 1 -path '*/${{github.event.inputs.networkName}}/*' -type d | wc -l)
+          NO_FOLDERS=$(find $NETWORKS_PATH -mindepth 4 -path '*/${{github.event.inputs.networkName}}/*' | wc -l)
           echo $NO_FOLDERS
           cd $PRIVATE_PATH
           if [ $NO_FOLDERS == 0 ]; then
@@ -118,6 +118,6 @@ jobs:
           git config --global user.name ${{ secrets.GIT_USERNAME }}
           ls -la ./private/${{ github.event.inputs.networkName }}
           git pull
-          git add -f $TMP_FOLDER_PATH
+          git add -f $INFRA_FILE_PATH
           git commit -m "Updated terraform.tfstate"
           git push origin master

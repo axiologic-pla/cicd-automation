@@ -49,7 +49,7 @@ jobs:
 
       - name: Clone pl-automation
         run: |
-          git clone ${{secrets.CI_CD_AUTOMATION_REPO_URL}}
+          git clone ${{secrets.CI_CD_AUTOMATION_REPO_URL}} pl-automation
 
       - name: Configure AWS Credentials Action For GitHub Actions
         uses: aws-actions/configure-aws-credentials@v1
@@ -109,3 +109,11 @@ jobs:
           git add -f $TERRAFORM_STATE_PATH
           git commit -m "Updated terraform.tfstate"
           git push origin master
+
+      - name: Terraform destroy
+        if: ${{failure()}}
+        run: terraform -chdir=$TERRAFORM_SCRIPTS_PATH destroy -auto-approve -input=false
+        env:
+          TF_VAR_account_id: ${{ secrets.ACCOUNT_ID }}
+          TF_VAR_region: ${{env.REGION}}
+          TF_VAR_eks_cluster_name: ${{ github.event.inputs.clusterAlias }}

@@ -35,7 +35,7 @@ jobs:
           echo "NETWORKS_PATH=./networks" >> $GITHUB_ENV
           echo "REGION_FILE_PATH=./private/${{ github.event.inputs.networkName }}/${{ github.event.inputs.clusterAlias }}/region" >> $GITHUB_ENV
           echo "GITHUB_INFO_FILE_PATH=./private/${{ github.event.inputs.networkName }}/${{ github.event.inputs.clusterAlias }}/private/github.info.yaml" >> $GITHUB_ENV
-          echo "JOIN_FILE_PATH=./private/${{ github.event.inputs.clusterAlias }}/${{ github.event.inputs.networkName }}" >> $GITHUB_ENV
+          echo "JOIN_FILE_PATH=./private/${{ github.event.inputs.networkName }}/${{ github.event.inputs.clusterAlias }}/join" >> $GITHUB_ENV
           echo "QUORUM_CONFIG_PATH=./private/${{github.event.inputs.networkName}}/${{github.event.inputs.clusterAlias}}/private/update-partners.info.yaml" >> $GITHUB_ENV
       # Checkout the repository to the GitHub Actions runner
       - uses: actions/checkout@v3
@@ -46,6 +46,7 @@ jobs:
         run: |
           mkdir -p $SCRIPTS_FILE_PATH
           cp -r $INFRA_FILE_PATH $SCRIPTS_FILE_PATH
+          ls -la $SCRIPTS_FILE_PATH
 
       - name: Read region
         run: |
@@ -57,7 +58,7 @@ jobs:
 
       - name: Generate update-partners.info.yaml
         run: |
-          PARTNERS=$(/bin/bash $GET_PARTNERS_SCRIPT_PATH $NETWORKS_PATH ${{github.event.inputs.networkName}})
+          PARTNERS=$(/bin/bash $GET_PARTNERS_SCRIPT_PATH $NETWORKS_PATH ${{github.event.inputs.networkName}} ${{github.event.inputs.clusterAlias}})
           cat > $QUORUM_CONFIG_PATH << EOF
           use_case:
             updatePartnersInfo:
@@ -113,12 +114,7 @@ jobs:
 
       - name: Update partners
         run: |
-          NO_FOLDERS=$(find $NETWORKS_PATH -maxdepth 1 -path '*/${{github.event.inputs.networkName}}/' -type d | wc -l)
-          echo $NO_FOLDERS
           cd $PRIVATE_PATH
-          if [ $NO_FOLDERS -ge 1 ]; then
-            touch $JOIN_FILE_PATH
-          fi
-          ../pl-automation/deployments/bin/update-partners.sh ${{ github.event.inputs.networkName }} ${{ github.event.inputs.clusterAlias }}
+          ../pl-automation/deployments/bin/update-partners.sh ${{ github.event.inputs.networkName }} ${{ github.event.inputs.clusterAlias }} 
 
           

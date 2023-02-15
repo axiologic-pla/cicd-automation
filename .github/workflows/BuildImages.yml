@@ -62,7 +62,7 @@ jobs:
     steps:
       - name: Clone pl-automation
         run: |
-          git clone ${{secrets.CI_CD_AUTOMATION_REPO_URL}}
+          git clone ${{secrets.CI_CD_AUTOMATION_REPO_URL}} pl-automation
       - name: Update Eth Adapter env values
         run: |
           cd pl-automation/images/ethadapter  

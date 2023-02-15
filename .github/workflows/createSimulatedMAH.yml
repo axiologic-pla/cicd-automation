@@ -1,0 +1,75 @@
+name: 'Create Simulated MAH'
+
+on:
+  workflow_dispatch:
+    inputs:
+      networkName:
+        description: 'Enter the network name (eq. demo, pq, preqa etc.)'
+        required: true
+        type: string
+      name:
+        description: 'Name of MAH in short form (eg. MSD, NVS etc.)'
+        required: true
+        type: string
+      bdnsSubdomain:
+        description: 'Subdomain that will be configured in BDNS (eg. msd, nvs etc.)'
+        required: true
+        type: string
+      hostname:
+        description: 'DNS (eg. admin.pla.health, pq.pla.health, play.pla.health)'
+        required: true
+        type: string
+      includePrefix:
+        description: 'Include prefix'
+        required: false
+        type: boolean
+        default: false
+        
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+
+jobs:
+  createSimulatedMAH:
+    name: 'Create Simulated MAH'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    
+      - name: Preparing the environment
+        run: |
+
+          echo "BASE_URL=https://${{ github.event.inputs.hostname }}" >> $GITHUB_ENV
+          echo "DNS_DOMAIN=$(echo "${{ github.event.inputs.hostname }}" | grep -Eo '[^.]*.[^.]*$')" >> $GITHUB_ENV
+          
+          echo "MAIN_DOMAIN=${{ github.event.inputs.networkName }}.epi" >> $GITHUB_ENV
+          echo "SUB_DOMAIN=${{ github.event.inputs.networkName }}.epi" >> $GITHUB_ENV
+          echo "VAULT_DOMAIN=${{ github.event.inputs.networkName }}.vault" >> $GITHUB_ENV
+          
+          echo "CLONE_MAIN_DOMAIN=${{ github.event.inputs.networkName }}.epi" >> $GITHUB_ENV
+          echo "CLONE_VAULT_DOMAIN=${{ github.event.inputs.networkName }}.vault.pla" >> $GITHUB_ENV
+          
+          echo "ADMIN_DNS_DOMAIN=${{ github.event.inputs.hostname }}" >> $GITHUB_ENV
+          
+          echo "TENANT_NAME=${{ github.event.inputs.bdnsSubdomain }}" >> $GITHUB_ENV
+        
+      - name: Preparing the environment
+        if: ${{ github.event.inputs.includePrefix == 'true' }} 
+        run: |
+          echo "SUBDOMAIN_COMMON_PREFIX=$(echo '${{ github.event.inputs.hostname }}' | sed 's|.${{env.DNS_DOMAIN}}||g')" >> $GITHUB_ENV
+
+      - name: Checkout tentant script from Opendsu-sdk/Apihub
+        run: |
+          git clone https://github.com/opendsu/opendsu-sdk
+          cd opendsu-sdk
+          npm run dev-install
+                
+      - name: Running the script 
+        run: |
+          cd opendsu-sdk/modules/apihub/components/admin
+          node tenantCustomization.js
